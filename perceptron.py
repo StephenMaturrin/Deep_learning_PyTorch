@@ -80,37 +80,19 @@ for i in range(var.N_IMAGES_TRAIN):
     aux = var.EPSILON * numpy.transpose(X)
     deltaW =  numpy.dot(aux, deltaLabel)
     W = numpy.add(W,deltaW)
-
+accurrancy= 0
 for i in range(var.N_IMAGES_TEST):
     X = torch.cat((bias, train_data[i, :]), 0)
     label = train_data_label[i, :]
     prediction = numpy.dot(X, W) / (var.N_FEATURES+1)
-    print("predicted %f label %f" % (numpy.argmax(prediction),numpy.argmax(label)))
-    if(numpy.argmax(prediction)==numpy.argmax(label)))
+ # print("predicted %f label %f" % (numpy.argmax(prediction),numpy.argmax(label)))
 
 
+    if(numpy.argmax(prediction)==numpy.argmax(label)):
+        accurrancy+=1
 
-# W = var.EPSILON  * W(Y-)
-
-
-# print(Y)
-#
-
-#
-#      Y = numpy.dot(X,W)/784
-
-
-
-
-
-# print(X)
-#
-# print(X)
-# X
-# print(torch.t(W))
-# Y = torch.mm(X, torch.t(W))
-# print(Y)
-
-
-
+print("Valeurs bien predit: %d " % (accurrancy))
+print("Valeurs mal predit:  %d " % (var.N_IMAGES_TEST))
+print("Taux de reussite:    %f" % (accurrancy/var.N_IMAGES_TEST*100))
+print("Taux d'erreur:       %f" %  (100-(accurrancy/var.N_IMAGES_TEST*100)))
 
