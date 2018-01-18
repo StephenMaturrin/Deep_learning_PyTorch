@@ -56,9 +56,11 @@ if __name__ == '__main__':
 
 
 X = torch.Tensor(1, var.N_FEATURES + 1)  # R 1*785
-W_Hidden_Layer = torch.rand(var.N_FEATURES+1,30) # R 785*30
-W_Exit_Layer = torch.rand(30,var.N_CLASSES) # R 30*10
+W_Entry_Layer = torch.rand(var.N_FEATURES+1,30).uniform_(-1,1) # R 785*30
+W_Hidden_Layer = torch.rand(30+1,var.N_CLASSES).uniform_(-1,1) # R 30*10
 Y = torch.Tensor(1, var.N_CLASSES)      # R 1*10
+y1 = torch.Tensor(1, 31)
+y2 = torch.Tensor(1, 10)
 
 bias = torch.ones(1)
 
@@ -72,38 +74,44 @@ aux = torch.Tensor(var.N_FEATURES+1, 1)
 
 deltaW  = torch.Tensor(var.N_FEATURES+1,var.N_CLASSES)
 
-y1 = np.zeros((1, 1))
+
 
 sigmoid_v = numpy.vectorize(functions.sigmoid)
+DFsigmoid_v = numpy.vectorize(functions.DFsigmoid)
 
-# for i in range(var.N_IMAGES_TRAIN):
-X = torch.cat((bias,train_data[1, :]), 0)
-label =   train_data_label [1, :]
-y1 = sigmoid_v(numpy.dot(X, W_Hidden_Layer)/785)
+for i in range(var.N_IMAGES_TRAIN):
+    X = torch.cat((bias,train_data[1, :]), 0)
+    X= X [numpy.newaxis]
+    label =   train_data_label [1, :]
+    Z2 = torch.matmul(X,W_Entry_Layer) # R 1*30
+    a2 = sigmoid_v(Z2)   # R 1*30
+    a2 = numpy.concatenate((bias,a2[0, :]),0)  # R 31*1
+    Z3= numpy.dot(a2,W_Hidden_Layer)# R 1*10
+    delta3 = numpy.add(label,Z3*-1)
+    delta3 = delta3
+    aux = DFsigmoid_v(Z2)
+    delta2 = numpy.dot(delta3,numpy.transpose((W_Hidden_Layer)))
+    delta2 = delta2 [numpy.newaxis] # 1D -> D2 array
+    delta2 = numpy.multiply(delta2[0,1:31],aux)
+    delta_W_Entry_Layer = var.EPSILON * numpy.dot(numpy.transpose((X)),delta2)
+    W_Entry_Layer = numpy.add(delta_W_Entry_Layer,W_Entry_Layer)
+    delta3 = delta3 [numpy.newaxis]
+    delta_W_Hidden_Layer =  var.EPSILON * numpy.dot(numpy.transpose((Z2)),delta3)
+    W_Hidden_Layer [1:,:] = numpy.add(delta_W_Hidden_Layer,W_Hidden_Layer[1,:])
 
-y1 = y1 [numpy.newaxis]
-
-print(y1[1,:])
-
-deltaLabel = numpy.add(label,prediction*-1)
-X = X [numpy.newaxis] # 1D -> D2 array
-deltaLabel = deltaLabel [numpy.newaxis]
-aux = var.EPSILON * numpy.transpose(X)
-deltaW =  numpy.dot(aux, deltaLabel)
-# W = numpy.add(W,deltaW)
 accurrancy= 0
-# for i in range(var.N_IMAGES_TEST):
-#     X = torch.cat((bias, train_data[i, :]), 0)
-#     label = train_data_label[i, :]
-#     prediction = numpy.dot(X, W) / (var.N_FEATURES+1)
-#  # print("predicted %f label %f" % (numpy.argmax(prediction),numpy.argmax(label)))
-#
-#
-#     if(numpy.argmax(prediction)==numpy.argmax(label)):
-#         accurrancy+=1
-#
-# print("Valeurs bien predit: %d " % (accurrancy))
-# print("Valeurs mal predit:  %d " % (var.N_IMAGES_TEST))
-# print("Taux de reussite:    %f" % (accurrancy/var.N_IMAGES_TEST*100))
-# print("Taux d'erreur:       %f" %  (100-(accurrancy/var.N_IMAGES_TEST*100)))
+for i in range(var.N_IMAGES_TEST):
+    X = torch.cat((bias, train_data[i, :]), 0)
+    label = train_data_label[i, :]
+    prediction = numpy.dot(X, W) / (var.N_FEATURES+1)
+ # print("predicted %f label %f" % (numpy.argmax(prediction),numpy.argmax(label)))
+
+
+    if(numpy.argmax(prediction)==numpy.argmax(label)):
+        accurrancy+=1
+
+print("Valeurs bien predit: %d " % (accurrancy))
+print("Valeurs mal predit:  %d " % (var.N_IMAGES_TEST))
+print("Taux de reussite:    %f" % (accurrancy/var.N_IMAGES_TEST*100))
+print("Taux d'erreur:       %f" %  (100-(accurrancy/var.N_IMAGES_TEST*100)))
 

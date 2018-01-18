@@ -5,6 +5,10 @@ import  numpy
 def sigmoid(x):
   return 1 / (1 + math.exp(-x))
 
+def DFsigmoid(x):
+  return (sigmoid(x)* (1 - sigmoid(x)))
+
+
 def affichage(image,label):
     # on redimensionne l'image en 28x28
     image = image.reshape(28,28)

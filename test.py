@@ -1,10 +1,7 @@
 import numpy as np
 
 
-x = np.ones(3)
-print(x)
+a = np.arange(6)
 
-y = np.ones(3)
-
-print(y)
-print(x - y)
+print(a)
+print(np.multiply(a,a))
