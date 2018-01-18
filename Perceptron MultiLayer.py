@@ -1,3 +1,6 @@
+
+from __future__ import print_function
+from __future__ import division
 import  functions
 import gzip # pour décompresser les données
 import numpy # pour pouvoir utiliser des matrices
