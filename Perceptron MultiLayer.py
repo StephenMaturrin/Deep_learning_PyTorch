@@ -80,10 +80,10 @@ sigmoid_v = numpy.vectorize(functions.sigmoid)
 DFsigmoid_v = numpy.vectorize(functions.DFsigmoid)
 
 for i in range(var.N_IMAGES_TRAIN):
-    X = torch.cat((bias,train_data[1, :]), 0)
+    X = torch.cat((bias,train_data[i, :]), 0)
     X= X [numpy.newaxis]
-    label =   train_data_label [1, :]
-    Z2 = torch.matmul(X,W_Entry_Layer) # R 1*30
+    label =   train_data_label [i, :]
+    Z2 = numpy.dot(X,W_Entry_Layer) # R 1*30
     a2 = sigmoid_v(Z2)   # R 1*30
     a2 = numpy.concatenate((bias,a2[0, :]),0)  # R 31*1
     Z3= numpy.dot(a2,W_Hidden_Layer)# R 1*10
@@ -99,19 +99,25 @@ for i in range(var.N_IMAGES_TRAIN):
     delta_W_Hidden_Layer =  var.EPSILON * numpy.dot(numpy.transpose((Z2)),delta3)
     W_Hidden_Layer [1:,:] = numpy.add(delta_W_Hidden_Layer,W_Hidden_Layer[1,:])
 
-accurrancy= 0
-for i in range(var.N_IMAGES_TEST):
-    X = torch.cat((bias, train_data[i, :]), 0)
-    label = train_data_label[i, :]
-    prediction = numpy.dot(X, W) / (var.N_FEATURES+1)
- # print("predicted %f label %f" % (numpy.argmax(prediction),numpy.argmax(label)))
+    accurrancy= 0
+    for i in range(var.N_IMAGES_TEST):
+        X = torch.cat((bias, test_data[i, :]), 0)
+        X = X[numpy.newaxis]
+        label = test_data_label[i, :]
+        Z2 = numpy.dot(X, W_Entry_Layer)  # R 1*30
+        a2 = sigmoid_v(Z2)  # R 1*30
+        a2 = numpy.concatenate((bias, a2[0, :]), 0)  # R 31*1
+        Z3 = numpy.dot(a2, W_Hidden_Layer)  # R 1*10
+        print(Z3)
+        print("predicted %f label %f" % (numpy.argmax(Z3), numpy.argmax(label)))
+        if (numpy.argmax(Z3) == numpy.argmax(label)):
+            accurrancy += 1
 
 
-    if(numpy.argmax(prediction)==numpy.argmax(label)):
-        accurrancy+=1
 
-print("Valeurs bien predit: %d " % (accurrancy))
-print("Valeurs mal predit:  %d " % (var.N_IMAGES_TEST))
-print("Taux de reussite:    %f" % (accurrancy/var.N_IMAGES_TEST*100))
-print("Taux d'erreur:       %f" %  (100-(accurrancy/var.N_IMAGES_TEST*100)))
+
+    print("Valeurs bien predit: %d " % (accurrancy))
+    print("Valeurs mal predit:  %d " % (var.N_IMAGES_TEST))
+    print("Taux de reussite:    %f" % (accurrancy/var.N_IMAGES_TEST*100))
+    print("Taux d'erreur:       %f" %  (100-(accurrancy/var.N_IMAGES_TEST*100)))
 
