@@ -3,8 +3,10 @@ import gzip # pour décompresser les données
 import numpy # pour pouvoir utiliser des matrices
 import matplotlib.pyplot as plt # pour l'affichage
 import torch,torch.utils.data
+import matplotlib.patches as mpatches
 import pickle  # pour désérialiser les données
 # fonction qui va afficher l'image située à l'index index
+import math
 import  variables as var
 
 
@@ -52,47 +54,66 @@ if __name__ == '__main__':
 
 
 
-W = torch.rand(var.N_FEATURES+1,var.N_CLASSES) # R 785*10
-
 X = torch.Tensor(1, var.N_FEATURES + 1)  # R 1*785
-
 Y = torch.Tensor(1, var.N_CLASSES)      # R 1*10
-
 bias = torch.ones(1)
-
 label = torch.Tensor(1, var.N_CLASSES)
-
 prediction = torch.Tensor(1,var.N_CLASSES)
-
 deltaLabel = torch.Tensor(1,var.N_CLASSES)
-
 aux = torch.Tensor(var.N_FEATURES+1, 1)
-
 deltaW  = torch.Tensor(var.N_FEATURES+1,var.N_CLASSES)
+var.EPSILON = 1e-1
+y =[[] for _ in range(2)]
 
-for i in range(var.N_IMAGES_TRAIN):
-    X = torch.cat((bias,train_data[i, :]), 0)
-    label =   train_data_label [i, :]
-    prediction = numpy.dot(X, W) / (var.N_FEATURES+1)
-    deltaLabel = numpy.add(label,prediction*-1)
-    X = X [numpy.newaxis] # 1D -> D2 array
-    deltaLabel = deltaLabel [numpy.newaxis]
-    aux = var.EPSILON * numpy.transpose(X)
-    deltaW =  numpy.dot(aux, deltaLabel)
-    W = numpy.add(W,deltaW)
-accurrancy= 0
-for i in range(var.N_IMAGES_TEST):
-    X = torch.cat((bias, train_data[i, :]), 0)
-    label = train_data_label[i, :]
-    prediction = numpy.dot(X, W) / (var.N_FEATURES+1)
- # print("predicted %f label %f" % (numpy.argmax(prediction),numpy.argmax(label)))
+for j in range(10):
+
+    W = torch.rand(var.N_FEATURES + 1, var.N_CLASSES).uniform_(-0.1, 0.1)  # R 785*10
+    # var.EPSILON = float("%de%d" %(1+0.5*j+j*(7^j),-j))
+    y[1].append(j )
+    print(y[0])
+    for i in range(10):
+        for i in range(var.N_IMAGES_TRAIN):
+            X = torch.cat((bias,train_data[i, :]), 0)
+            label =   train_data_label [i, :]
+            X = X.view(1,var.N_FEATURES+1)
+            prediction = torch.mm(X,W) / (var.N_FEATURES+1)
+            deltaLabel = torch.add(label,prediction*-1)
+            deltaLabel = deltaLabel.view(1,10)
+            aux = var.EPSILON * torch.t(X)
+            deltaW =  torch.mm(aux, deltaLabel)
+            W = torch.add(W,deltaW)
+    accurrancy= 0
+    for i in range(var.N_IMAGES_TEST):
+        X = torch.cat((bias, train_data[i, :]), 0)
+        label = train_data_label[i, :]
+        X = X.view(1,var.N_FEATURES+1)
+        prediction = torch.mm(X, W) / (var.N_FEATURES+1)
+     # print("predicted %f label %f" % (numpy.argmax(prediction),numpy.argmax(label)))
 
 
-    if(numpy.argmax(prediction)==numpy.argmax(label)):
-        accurrancy+=1
+        if(numpy.argmax(prediction)==numpy.argmax(label)):
+            accurrancy+=1
+    y[0].append(accurrancy/var.N_IMAGES_TEST*100)
+    print("Valeurs bien predit: %d " % (accurrancy))
+    print("Valeurs mal predit:  %d " % (var.N_IMAGES_TEST))
+    print("Taux de reussite:    %f" % (accurrancy/var.N_IMAGES_TEST*100))
+    print("Taux d'erreur:       %f" %  (100-(accurrancy/var.N_IMAGES_TEST*100)))
 
-print("Valeurs bien predit: %d " % (accurrancy))
-print("Valeurs mal predit:  %d " % (var.N_IMAGES_TEST))
-print("Taux de reussite:    %f" % (accurrancy/var.N_IMAGES_TEST*100))
-print("Taux d'erreur:       %f" %  (100-(accurrancy/var.N_IMAGES_TEST*100)))
 
+# Moyenne Fitness
+
+fig0 = plt.figure()
+ax0 = fig0.add_subplot(111)
+ax0.grid(True)
+gridlines = ax0.get_xgridlines() + ax0.get_ygridlines()
+plt.yscale('linear')
+plt.xscale('linear')
+for line in gridlines:
+    line.set_linestyle('-.')
+plt.plot(y[1], y[0], 'bs',y[1], y[0])
+plt.ylabel('Pas dapprentissage')
+plt.xlabel('Accurrancy')
+
+blue_patch = mpatches.Patch(color='blue', label='Accurrancy')
+plt.legend(handles=[blue_patch])
+plt.show()

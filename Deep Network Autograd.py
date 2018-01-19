@@ -63,7 +63,7 @@ x = Variable(train_data , requires_grad=False)
 y = Variable(train_data_label, requires_grad=False)
 w1 = Variable(torch.randn(D_in, H).uniform_(-0.1,0.1).type(dtype), requires_grad=True)
 w2 = Variable(torch.randn(H, D_out).uniform_(-0.1,0.1).type(dtype), requires_grad=True)
-learning_rate = 5   e-6
+learning_rate = 5e-6
 for t in range(100):
     y_pred = x.mm(w1).clamp(min=0).mm(w2)
 
