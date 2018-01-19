@@ -54,10 +54,10 @@ if __name__ == '__main__':
 
 
 
-
+N_Hidden_layer = 300
 X = torch.Tensor(1, var.N_FEATURES + 1)  # R 1*785
-W_Entry_Layer = torch.rand(var.N_FEATURES+1,300).uniform_(-0.1,0.1) # R 785*30
-W_Hidden_Layer = torch.rand(300+1,var.N_CLASSES).uniform_(-1,1) # R 30*10
+W_Entry_Layer = torch.rand(var.N_FEATURES+1,N_Hidden_layer).uniform_(-0.1,0.1) # R 785*30
+W_Hidden_Layer = torch.rand(N_Hidden_layer+1,var.N_CLASSES).uniform_(-1,1) # R 30*10
 Y = torch.Tensor(1, var.N_CLASSES)      # R 1*10
 y1 = torch.Tensor(1, 31)
 y2 = torch.Tensor(1, 10)
