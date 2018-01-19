@@ -51,62 +51,40 @@ if __name__ == '__main__':
     # 10 fois
 
 
+sigmoid_v = numpy.vectorize(functions.sigmoid)
+DFsigmoid_v = numpy.vectorize(functions.DFsigmoid)
 
 
 
 dtype = torch.FloatTensor
 N, D_in, H, D_out = var.N_IMAGES_TRAIN,var.N_FEATURES, 300, var.N_CLASSES
 
-# x = Variable(train_data , requires_grad=False)
-# y = Variable(train_data, requires_grad=False)
-
-x = Variable(train_data)
+x = Variable(train_data , requires_grad=False)
 y = Variable(train_data_label, requires_grad=False)
+w1 = Variable(torch.randn(D_in, H).uniform_(-0.1,0.1).type(dtype), requires_grad=True)
+w2 = Variable(torch.randn(H, D_out).uniform_(-0.1,0.1).type(dtype), requires_grad=True)
+learning_rate = 5   e-6
+for t in range(100):
+    y_pred = x.mm(w1).clamp(min=0).mm(w2)
 
-model = torch.nn.Sequential(
-    torch.nn.Linear(D_in, H),
-    torch.nn.ReLU(),
-    torch.nn.Linear(H, D_out),
-)
-loss_fn = torch.nn.MSELoss(size_average=False)
-
-learning_rate = 1e-3
-optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-for t in range(500):
-    y_pred = model(x)
-    loss = loss_fn(y_pred, y)
-    print(t)
-    print( loss.data[0])
-    optimizer.zero_grad()
+    loss = (y_pred - y).pow(2).sum()
+    print(t, loss.data[0])
     loss.backward()
-    optimizer.step()
 
-
-# w1 = Variable(torch.randn(D_in, H).type(dtype), requires_grad=True)
-# w2 = Variable(torch.randn(H, D_out).type(dtype), requires_grad=True)
-# learning_rate = 1e-8
-# for t in range(1000):
-#     y_pred = x.mm(w1).clamp(min=0).mm(w2)
-#     loss = (y_pred - y).pow(2).sum()
-#     # print(torch.max(y_pred))
-#     loss.backward()
-#     w1.data -= learning_rate * w1.grad.data
-#     w2.data -= learning_rate * w2.grad.data
-#     w1.grad.data.zero_()
-#     w2.grad.data.zero_()
+    w1.data -= learning_rate * w1.grad.data
+    w2.data -= learning_rate * w2.grad.data
+    w1.grad.data.zero_()
+    w2.grad.data.zero_()
 
 
 accurrancy= 0
 
-# x = Variable(test_data , requires_grad=False)
-# y = Variable(test_data_label, requires_grad=False)
-# x = Variable(test_data , requires_grad=False)
-# y = Variable(test_data_label, requires_grad=False)
-x = Variable(test_data)
+x = Variable(test_data , requires_grad=False)
 y = Variable(test_data_label, requires_grad=False)
 
-# y_pred = x.mm(w1).clamp(min=0).mm(w2)
-y_pred = model(x)
+
+
+y_pred = x.mm(w1).clamp(min=0).mm(w2)
 
 for i in range(var.N_IMAGES_TEST):
     d = y_pred[i,:]

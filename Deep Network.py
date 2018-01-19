@@ -56,20 +56,14 @@ if __name__ == '__main__':
 
 dtype = torch.FloatTensor
 N, D_in, H, D_out = var.N_IMAGES_TRAIN,var.N_FEATURES, 300, var.N_CLASSES
-
-# x = Variable(train_data , requires_grad=False)
-# y = Variable(train_data, requires_grad=False)
-
 x = Variable(train_data)
 y = Variable(train_data_label, requires_grad=False)
-
 model = torch.nn.Sequential(
     torch.nn.Linear(D_in, H),
     torch.nn.ReLU(),
     torch.nn.Linear(H, D_out),
 )
 loss_fn = torch.nn.MSELoss(size_average=False)
-
 learning_rate = 1e-3
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 for t in range(500):
@@ -81,31 +75,11 @@ for t in range(500):
     loss.backward()
     optimizer.step()
 
-
-# w1 = Variable(torch.randn(D_in, H).type(dtype), requires_grad=True)
-# w2 = Variable(torch.randn(H, D_out).type(dtype), requires_grad=True)
-# learning_rate = 1e-8
-# for t in range(1000):
-#     y_pred = x.mm(w1).clamp(min=0).mm(w2)
-#     loss = (y_pred - y).pow(2).sum()
-#     # print(torch.max(y_pred))
-#     loss.backward()
-#     w1.data -= learning_rate * w1.grad.data
-#     w2.data -= learning_rate * w2.grad.data
-#     w1.grad.data.zero_()
-#     w2.grad.data.zero_()
-
-
 accurrancy= 0
 
-# x = Variable(test_data , requires_grad=False)
-# y = Variable(test_data_label, requires_grad=False)
-# x = Variable(test_data , requires_grad=False)
-# y = Variable(test_data_label, requires_grad=False)
 x = Variable(test_data)
 y = Variable(test_data_label, requires_grad=False)
 
-# y_pred = x.mm(w1).clamp(min=0).mm(w2)
 y_pred = model(x)
 
 for i in range(var.N_IMAGES_TEST):
