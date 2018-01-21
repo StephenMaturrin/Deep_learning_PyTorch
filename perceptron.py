@@ -103,6 +103,7 @@ for j in range(100):
     print("Taux d'erreur:       %f" %  (100-(accurrancy/var.N_IMAGES_TEST*100)))
 
 
+
 # Moyenne Fitness
 
 fig0 = plt.figure()
