@@ -62,16 +62,19 @@ prediction = torch.Tensor(1,var.N_CLASSES)
 deltaLabel = torch.Tensor(1,var.N_CLASSES)
 aux = torch.Tensor(var.N_FEATURES+1, 1)
 deltaW  = torch.Tensor(var.N_FEATURES+1,var.N_CLASSES)
-var.EPSILON = 1e-1
-y =[[] for _ in range(2)]
+var.EPSILON = 1e-4
+y =[[] for _ in range(3)]
 
-for j in range(10):
+for j in range(100):
 
     W = torch.rand(var.N_FEATURES + 1, var.N_CLASSES).uniform_(-0.1, 0.1)  # R 785*10
     # var.EPSILON = float("%de%d" %(1+0.5*j+j*(7^j),-j))
-    y[1].append(j )
-    print(y[0])
-    for i in range(10):
+    y[2].append(var.EPSILON)
+    y[1].append(j)
+
+    # [1.0, 0.7, 0.12, 0.014, 0.0015, 0.00013, 1e-05, 4e-07, 1.25e-06, 1.31e-07]
+    print(y[2])
+    for i in range(j):
         for i in range(var.N_IMAGES_TRAIN):
             X = torch.cat((bias,train_data[i, :]), 0)
             label =   train_data_label [i, :]
@@ -111,8 +114,8 @@ plt.xscale('linear')
 for line in gridlines:
     line.set_linestyle('-.')
 plt.plot(y[1], y[0], 'bs',y[1], y[0])
-plt.ylabel('Pas dapprentissage')
-plt.xlabel('Accurrancy')
+plt.ylabel('Taux de reussite')
+plt.xlabel('Nombre de pas')
 
 blue_patch = mpatches.Patch(color='blue', label='Accurrancy')
 plt.legend(handles=[blue_patch])
