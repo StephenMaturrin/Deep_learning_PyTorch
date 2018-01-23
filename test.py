@@ -1,6 +1,6 @@
-
 from __future__ import print_function
 from __future__ import division
+from torch.autograd import Variable
 import  functions
 import gzip # pour décompresser les données
 import numpy # pour pouvoir utiliser des matrices
@@ -10,7 +10,6 @@ import pickle  # pour désérialiser les données
 # fonction qui va afficher l'image située à l'index index
 import  variables as var
 import matplotlib.patches as mpatches
-
 
 
 if __name__ == '__main__':
@@ -27,20 +26,20 @@ if __name__ == '__main__':
     # on charge les données de la base MNIST
     # data = pickle.load(gzip.open('mnist.pkl.gz'))
     # images de la base d'apprentissage [torch.FloatTensor of size 63000x784]
-    train_data = torch.DoubleTensor(data[0][0])
+    train_data = torch.Tensor(data[0][0])
 
 
     # labels de la base d'apprentissage [torch.FloatTensor of size 63000x784]
-    train_data_label = torch.DoubleTensor(data[0][1])
+    train_data_label = torch.Tensor(data[0][1])
 
 
     # images de la base de test [torch.FloatTensor of size 7000x784]
-    test_data = torch.DoubleTensor(data[1][0])
+    test_data = torch.Tensor(data[1][0])
 
 
 
     # labels de la base de test [torch.FloatTensor of size 7000x10]
-    test_data_label = torch.DoubleTensor(data[1][1])
+    test_data_label = torch.Tensor(data[1][1])
 
     # on crée la base de données d'apprentissage (pour torch)
     train_dataset = torch.utils.data.TensorDataset(train_data,train_data_label)
@@ -53,104 +52,90 @@ if __name__ == '__main__':
     # 10 fois
 
 
-
-N_Hidden_layer = 30
-X = torch.DoubleTensor(1, var.N_FEATURES + 1)  # R 1*785
-
-W_Entry_Layer = torch.rand(var.N_FEATURES+1,N_Hidden_layer).uniform_(-0.1,0.1) # R 785*30
-
-W_Hidden_Layer = torch.rand(N_Hidden_layer+1,var.N_CLASSES).uniform_(-1,1) # R 30*10
-Y = torch.DoubleTensor(1, var.N_CLASSES)      # R 1*10
-y1 = torch.DoubleTensor(1, 31)
-y2 = torch.DoubleTensor(1, 10)
-
-bias = torch.DoubleTensor([1])
-
-label = torch.DoubleTensor(1, var.N_CLASSES)
-
-prediction = torch.DoubleTensor(1,var.N_CLASSES)
-
-deltaLabel = torch.DoubleTensor(1,var.N_CLASSES)
-
-aux = torch.DoubleTensor(var.N_FEATURES+1, 1)
-
-deltaW  = torch.DoubleTensor(var.N_FEATURES+1,var.N_CLASSES)
-
-
 sigmoid_v = numpy.vectorize(functions.sigmoid)
 DFsigmoid_v = numpy.vectorize(functions.DFsigmoid)
 
-y = [[] for _ in range(3)]
-for N_Hidden_layer in range(2,100):
-    print(N_Hidden_layer)
-    W_Entry_Layer = torch.rand(var.N_FEATURES + 1, N_Hidden_layer).uniform_(-0.1, 0.1)  # R 785*30
 
-    W_Hidden_Layer = torch.rand(N_Hidden_layer + 1, var.N_CLASSES).uniform_(-1, 1)  # R 30*10
+# Taux de reussite:    89.142857
+# Taux d'erreur:       10.857143
+dtype = torch.FloatTensor
+N, D_in, H, D_out = var.N_IMAGES_TRAIN,var.N_FEATURES, 300, var.N_CLASSES
 
-
-    y[1].append(N_Hidden_layer)
-    for j in range(2):
-
-        for i in range(var.N_IMAGES_TRAIN):
-            #########################################################################
-            X = torch.cat((bias,train_data[i, :]), 0)
-            X= X [numpy.newaxis]
-            label =   train_data_label [i, :]
-            Z2 = torch.mm(X,W_Entry_Layer.double()) #R 1*30 = R 1*785 . R 785*30
-            a2 = torch.from_numpy(sigmoid_v(Z2))   # R 1*31
-            a2 = a2.view(1, N_Hidden_layer)
-
-            a2 = torch.cat((bias,a2[0,:]),0).view(1,N_Hidden_layer+1)  #R 1*31 a2[0, :
-
-            Z3= torch.mm(a2,W_Hidden_Layer.double())# R 1*10 = R 1*31 R 31*10
-            ################################################################################
+N_Hidden_Layer = 3
+wi=[]
+x = Variable(train_data , requires_grad=False)
+y = Variable(train_data_label, requires_grad=False)
 
 
-            delta2 = torch.add(label.view(1,var.N_CLASSES),Z3*-1)  #R 1*10
+pl =[[] for _ in range(3)]
+
+for j in range(1):
+    x = Variable(train_data, requires_grad=False)
+    y = Variable(train_data_label, requires_grad=False)
+
+    wi = []
+    pl[0].append(j)
+    N_Hidden_Layer = 1
+    w1 = Variable(torch.randn(D_in, H).uniform_(-0.1,0.1).type(dtype), requires_grad=True)
 
 
-            aux = DFsigmoid_v(Z2)
+    for i in range(N_Hidden_Layer):
+        wi.append("w%d" % (i))
+        # wi[i] = Variable(torch.randn(H, H).uniform_(-0.1, 0.1).type(dtype), requires_grad=True)
+        wi[0] = Variable(torch.randn(300, 100).uniform_(-0.1, 0.1).type(dtype), requires_grad=True)
+    # wi[1] = Variable(torch.randn(100, 30).uniform_(-0.1, 0.1).type(dtype), requires_grad=True)
 
-            aux = torch.from_numpy(aux)  #R 1*30
+    w3 = Variable(torch.randn(100, D_out).uniform_(-0.1,0.1).type(dtype), requires_grad=True)
+    learning_rate = 1e-5
+    for t in range(1000):
+        y_pred = x.mm(w1).clamp(min=-0.1, max=0.1)
+        # print("here")
+        # y_pred = sigmoid_v(x.mm(w1))
+        # print("here1")
+        # y_pred = torch.from_numpy(y_pred)
+        for i in range(N_Hidden_Layer):
+            y_pred = y_pred.mm(wi[i])
+        y_pred = y_pred.mm(w3)
+        # print(y_pred)
+        loss = (y_pred - y).pow(2).sum()
+        print(t, loss.data[0])
+        loss.backward()
+
+        w1.data -= learning_rate * w1.grad.data
+        for i in range(N_Hidden_Layer):
+            wi[i].data -= learning_rate * wi[i].grad.data
+        w3.data -= learning_rate * w3.grad.data
+        w1.grad.data.zero_()
+        for i in range(N_Hidden_Layer):
+            wi[i].grad.data.zero_()
+
+        w3.grad.data.zero_()
 
 
-            delta1 = torch.mm(delta2,numpy.transpose((W_Hidden_Layer[1:,:].double()))) # R 1* 30 = R 1*10 . R 10*31
-             # R 1 * 31
-            # delta2 = delta2 [numpy.newaxis] # 1D -> D2 array
+    accurrancy= 0
 
-            delta1= torch.mul(delta1,aux) #delta2[0,1:31]
-            delta_W_Entry_Layer = var.EPSILON * torch.mm(numpy.transpose((X)),delta1)
-            W_Entry_Layer = torch.add(delta_W_Entry_Layer,W_Entry_Layer.double())
-            delta_W_Hidden_Layer =  var.EPSILON * torch.mm(torch.t(Z2),delta2)    #R 1*30 #R 1*10
-            W_Hidden_Layer[1:,:] = torch.add(delta_W_Hidden_Layer,W_Hidden_Layer[1:,:].double())#  W_Hidden_Layer[1,:]
+    x = Variable(test_data , requires_grad=False)
+    y = Variable(test_data_label, requires_grad=False)
+    y_pred = x.mm(w1).clamp(min=-0.1, max=0.1)
+    # y_pred = sigmoid_v(x.mm(w1))
+    # y_pred = torch.from_numpy(y_pred)
+    for i in range(N_Hidden_Layer):
+        y_pred = y_pred.mm(wi[i])
+    y_pred = y_pred.mm(w3)
 
-
-    accurracy= 0
     for i in range(var.N_IMAGES_TEST):
-        X = torch.cat((bias, test_data[i, :]), 0)
-        X = X[numpy.newaxis]
-
-        label = test_data_label[i, :]
-        Z2 = numpy.dot(X, W_Entry_Layer)  # R 1*30 = R 1*785 . R 785*30
-        a2 = sigmoid_v(Z2)  # R 1*31
-        a2 = numpy.concatenate((bias, a2[0, :]), 0)  # R 1*31 a2[0, :]
-        # a2 = numpy.concatenate((bias, a2[0, :]), 0)  # R 1*31
-        a2 = a2[numpy.newaxis]
-        a2 = torch.from_numpy(a2)
-
-        Z3 = numpy.dot(a2, W_Hidden_Layer)  # R 1*10 = R 1*31 R 31*10
-        Z3 = torch.from_numpy(Z3)
-
-        # print("predicted %f label %f" % (numpy.argmax(Z3), numpy.argmax(label)))
-        if (numpy.argmax(Z3) == numpy.argmax(label)):
-            accurracy += 1
-
-    y[0].append(accurracy / var.N_IMAGES_TEST * 100)
-    print("Valeurs bien predit: %d " % (accurracy))
+        d = y_pred[i,:]
+        valuesx, indicesx = torch.max(d, 0)
+        indices2 = numpy.argmax(test_data_label[i, :])
+        indices1 =  indicesx.data.numpy()[0]
+        # print("predicted %f label %f" % (indices1,indices2  ))
+        if (indices1==indices2):
+            accurrancy += 1
+    pl[1].append(accurrancy/var.N_IMAGES_TEST*100)
+    print("Valeurs bien predit: %d " % (accurrancy))
     print("Valeurs mal predit:  %d " % (var.N_IMAGES_TEST))
-    print("Taux de reussite:    %f" % (accurracy/var.N_IMAGES_TEST*100))
-    print("Taux d'erreur:       %f" %  (100-(accurracy/var.N_IMAGES_TEST*100)))
-    #
+    print("Taux de reussite:    %f" % (accurrancy/var.N_IMAGES_TEST*100))
+    print("Taux d'erreur:       %f" %  (100-(accurrancy/var.N_IMAGES_TEST*100)))
 
 fig0 = plt.figure()
 ax0 = fig0.add_subplot(111)
@@ -158,12 +143,29 @@ ax0.grid(True)
 gridlines = ax0.get_xgridlines() + ax0.get_ygridlines()
 plt.yscale('linear')
 plt.xscale('linear')
+
+print(pl)
 for line in gridlines:
     line.set_linestyle('-.')
-plt.plot(y[1], y[0], 'bs',y[1], y[0])
-plt.ylabel('Accuracy')
-plt.xlabel('')
+plt.plot(pl[0], pl[1], 'bs', pl[0], pl[1])
+plt.ylabel('Taux de reussite')
+plt.xlabel('N_hidden_layer')
 
 blue_patch = mpatches.Patch(color='blue', label='Accurrancy')
 plt.legend(handles=[blue_patch])
 plt.show()
+
+
+    # Taux
+    # de
+    # reussite: 93.385714
+    # Taux
+    # d
+    # 'erreur:       6.614286
+    # 300
+    # e 5e-6
+
+Valeurs bien predit: 6695
+Valeurs mal predit:  7000
+Taux de reussite:    95.642857
+Taux d'erreur:       4.357143

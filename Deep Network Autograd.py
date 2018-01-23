@@ -59,22 +59,30 @@ DFsigmoid_v = numpy.vectorize(functions.DFsigmoid)
 dtype = torch.FloatTensor
 N, D_in, H, D_out = var.N_IMAGES_TRAIN,var.N_FEATURES, 300, var.N_CLASSES
 
+N_Hidden_Layer = 1
+i=[]
+i.append("w%d" %(2))
 x = Variable(train_data , requires_grad=False)
 y = Variable(train_data_label, requires_grad=False)
-w1 = Variable(torch.randn(D_in, H).uniform_(-0.1,0.1).type(dtype), requires_grad=True)
-w2 = Variable(torch.randn(H, D_out).uniform_(-0.1,0.1).type(dtype), requires_grad=True)
+w1 = Variable(torch.randn(D_in, H).uniform_(-0.01,0.01).type(dtype), requires_grad=True)
+# i[0] = Variable(torch.randn(H, 30).uniform_(-0.1,0.1).type(dtype), requires_grad=True)
+w3 = Variable(torch.randn(H, D_out).uniform_(-0.01,0.01).type(dtype), requires_grad=True)
 learning_rate = 5e-6
-for t in range(100):
-    y_pred = x.mm(w1).clamp(min=0).mm(w2)
+for t in range(300):
+    # y_pred = torch.sigmoid(x.mm(w1)).mm(i[0]).mm(w3)
+    y_pred = torch.sigmoid(x.mm(w1)).mm(w3)
+
 
     loss = (y_pred - y).pow(2).sum()
     print(t, loss.data[0])
     loss.backward()
 
     w1.data -= learning_rate * w1.grad.data
-    w2.data -= learning_rate * w2.grad.data
+    # i[0].data -= learning_rate * i[0].grad.data
+    w3.data -= learning_rate * w3.grad.data
     w1.grad.data.zero_()
-    w2.grad.data.zero_()
+    # i[0].grad.data.zero_()
+    w3.grad.data.zero_()
 
 
 accurrancy= 0
@@ -84,8 +92,8 @@ y = Variable(test_data_label, requires_grad=False)
 
 
 
-y_pred = x.mm(w1).clamp(min=0).mm(w2)
-
+# y_pred = torch.sigmoid(x.mm(w1)).mm(i[0]).mm(w3)
+y_pred = torch.sigmoid(x.mm(w1)).mm(w3)
 for i in range(var.N_IMAGES_TEST):
     d = y_pred[i,:]
     valuesx, indicesx = torch.max(d, 0)

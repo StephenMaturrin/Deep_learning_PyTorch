@@ -66,14 +66,11 @@ var.EPSILON = 1e-4
 y =[[] for _ in range(3)]
 
 for j in range(100):
-
     W = torch.rand(var.N_FEATURES + 1, var.N_CLASSES).uniform_(-0.1, 0.1)  # R 785*10
     # var.EPSILON = float("%de%d" %(1+0.5*j+j*(7^j),-j))
     y[2].append(var.EPSILON)
     y[1].append(j)
-
     # [1.0, 0.7, 0.12, 0.014, 0.0015, 0.00013, 1e-05, 4e-07, 1.25e-06, 1.31e-07]
-    print(y[2])
     for i in range(j):
         for i in range(var.N_IMAGES_TRAIN):
             X = torch.cat((bias,train_data[i, :]), 0)
@@ -121,3 +118,4 @@ plt.xlabel('Nombre de pas')
 blue_patch = mpatches.Patch(color='blue', label='Accurrancy')
 plt.legend(handles=[blue_patch])
 plt.show()
+

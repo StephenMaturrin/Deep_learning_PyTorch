@@ -54,7 +54,7 @@ if __name__ == '__main__':
 
 
 
-N_Hidden_layer = 30
+N_Hidden_layer = 300
 X = torch.DoubleTensor(1, var.N_FEATURES + 1)  # R 1*785
 
 W_Entry_Layer = torch.rand(var.N_FEATURES+1,N_Hidden_layer).uniform_(-0.1,0.1) # R 785*30
@@ -77,12 +77,13 @@ aux = torch.DoubleTensor(var.N_FEATURES+1, 1)
 deltaW  = torch.DoubleTensor(var.N_FEATURES+1,var.N_CLASSES)
 
 
+
 sigmoid_v = numpy.vectorize(functions.sigmoid)
 DFsigmoid_v = numpy.vectorize(functions.DFsigmoid)
 N_Hidden_layer = 30
 
 y = [[] for _ in range(3)]
-for j in range(10):
+for j in range(1):
     print(N_Hidden_layer)
     W_Entry_Layer = torch.rand(var.N_FEATURES + 1, N_Hidden_layer).uniform_(-0.1, 0.1)  # R 785*30
 
@@ -90,7 +91,7 @@ for j in range(10):
 
 
     y[1].append(j)
-    for i in range(j):
+    for i in range(20):
 
         for i in range(var.N_IMAGES_TRAIN):
             #########################################################################
@@ -100,25 +101,15 @@ for j in range(10):
             Z2 = torch.mm(X,W_Entry_Layer.double()) #R 1*30 = R 1*785 . R 785*30
             a2 = torch.from_numpy(sigmoid_v(Z2))   # R 1*31
             a2 = a2.view(1, N_Hidden_layer)
-
             a2 = torch.cat((bias,a2[0,:]),0).view(1,N_Hidden_layer+1)  #R 1*31 a2[0, :
-
             Z3= torch.mm(a2,W_Hidden_Layer.double())# R 1*10 = R 1*31 R 31*10
             ################################################################################
-
-
             delta2 = torch.add(label.view(1,var.N_CLASSES),Z3*-1)  #R 1*10
-
-
             aux = DFsigmoid_v(Z2)
-
             aux = torch.from_numpy(aux)  #R 1*30
-
-
             delta1 = torch.mm(delta2,numpy.transpose((W_Hidden_Layer[1:,:].double()))) # R 1* 30 = R 1*10 . R 10*31
              # R 1 * 31
             # delta2 = delta2 [numpy.newaxis] # 1D -> D2 array
-
             delta1= torch.mul(delta1,aux) #delta2[0,1:31]
             delta_W_Entry_Layer = var.EPSILON * torch.mm(numpy.transpose((X)),delta1)
             W_Entry_Layer = torch.add(delta_W_Entry_Layer,W_Entry_Layer.double())
