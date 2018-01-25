@@ -61,7 +61,7 @@ DFsigmoid_v = numpy.vectorize(functions.DFsigmoid)
 dtype = torch.FloatTensor
 N, D_in, H, D_out = var.N_IMAGES_TRAIN,var.N_FEATURES, 300, var.N_CLASSES
 
-N_Hidden_Layer = 3
+
 wi=[]
 x = Variable(train_data , requires_grad=False)
 y = Variable(train_data_label, requires_grad=False)
@@ -70,24 +70,32 @@ y = Variable(train_data_label, requires_grad=False)
 pl =[[] for _ in range(3)]
 
 for j in range(1):
+    N_Hidden_Layer = 6
     x = Variable(train_data, requires_grad=False)
     y = Variable(train_data_label, requires_grad=False)
 
     wi = []
-    pl[0].append(j)
-    N_Hidden_Layer = 1
+    # pl[0].append(j)
+    # N_Hidden_Layer = 5
     w1 = Variable(torch.randn(D_in, H).uniform_(-0.1,0.1).type(dtype), requires_grad=True)
 
 
     for i in range(N_Hidden_Layer):
-        wi.append("w%d" % (i))
-        # wi[i] = Variable(torch.randn(H, H).uniform_(-0.1, 0.1).type(dtype), requires_grad=True)
-        wi[0] = Variable(torch.randn(300, 100).uniform_(-0.1, 0.1).type(dtype), requires_grad=True)
+         wi.append("w%d" % (i))
+    #     wi[i] = Variable(torch.randn(H, H).uniform_(-0.1, 0.1).type(dtype), requires_grad=True)
+    wi[0] = Variable(torch.randn(300, 100).uniform_(-0.1, 0.1).type(dtype), requires_grad=True)
+    wi[1] = Variable(torch.randn(100, 50).uniform_(-0.1, 0.1).type(dtype), requires_grad=True)
+    wi[2] = Variable(torch.randn(50, 10).uniform_(-0.1, 0.1).type(dtype), requires_grad=True)
+    wi[3] = Variable(torch.randn(10, 50).uniform_(-0.1, 0.1).type(dtype), requires_grad=True)
+    wi[4] = Variable(torch.randn(50, 100).uniform_(-0.1, 0.1).type(dtype), requires_grad=True)
+    wi[5] = Variable(torch.randn(100, 300).uniform_(-0.1, 0.1).type(dtype), requires_grad=True)
     # wi[1] = Variable(torch.randn(100, 30).uniform_(-0.1, 0.1).type(dtype), requires_grad=True)
 
-    w3 = Variable(torch.randn(100, D_out).uniform_(-0.1,0.1).type(dtype), requires_grad=True)
+    w3 = Variable(torch.randn(H, D_out).uniform_(-0.1, 0.1).type(dtype), requires_grad=True)
+    # w3 = Variable(torch.randn(100, D_out).uniform_(-0.1,0.1).type(dtype), requires_grad=True)
     learning_rate = 1e-5
-    for t in range(1000):
+    for t in range(1,1000):
+
         y_pred = x.mm(w1).clamp(min=-0.1, max=0.1)
         # print("here")
         # y_pred = sigmoid_v(x.mm(w1))
@@ -100,6 +108,8 @@ for j in range(1):
         loss = (y_pred - y).pow(2).sum()
         print(t, loss.data[0])
         loss.backward()
+        pl[1].append(loss.data[0])
+        pl[0].append(t)
 
         w1.data -= learning_rate * w1.grad.data
         for i in range(N_Hidden_Layer):
@@ -131,11 +141,11 @@ for j in range(1):
         # print("predicted %f label %f" % (indices1,indices2  ))
         if (indices1==indices2):
             accurrancy += 1
-    pl[1].append(accurrancy/var.N_IMAGES_TEST*100)
-    print("Valeurs bien predit: %d " % (accurrancy))
-    print("Valeurs mal predit:  %d " % (var.N_IMAGES_TEST))
-    print("Taux de reussite:    %f" % (accurrancy/var.N_IMAGES_TEST*100))
-    print("Taux d'erreur:       %f" %  (100-(accurrancy/var.N_IMAGES_TEST*100)))
+
+        print("Valeurs bien predit: %d " % (accurrancy))
+        print("Valeurs mal predit:  %d " % (var.N_IMAGES_TEST))
+        print("Taux de reussite:    %f" % (accurrancy/var.N_IMAGES_TEST*100))
+        print("Taux d'erreur:       %f" %  (100-(accurrancy/var.N_IMAGES_TEST*100)))
 
 fig0 = plt.figure()
 ax0 = fig0.add_subplot(111)
@@ -147,11 +157,11 @@ plt.xscale('linear')
 print(pl)
 for line in gridlines:
     line.set_linestyle('-.')
-plt.plot(pl[0], pl[1], 'bs', pl[0], pl[1])
-plt.ylabel('Taux de reussite')
-plt.xlabel('N_hidden_layer')
+plt.plot(pl[0], pl[1], 'bs', pl[0], pl[1],markersize=2)
+plt.ylabel('Erreur quadratique')
+plt.xlabel('Itaration')
 
-blue_patch = mpatches.Patch(color='blue', label='Accurrancy')
+blue_patch = mpatches.Patch(color='blue', label='Erreur')
 plt.legend(handles=[blue_patch])
 plt.show()
 
@@ -165,7 +175,7 @@ plt.show()
     # 300
     # e 5e-6
 
-Valeurs bien predit: 6695
-Valeurs mal predit:  7000
-Taux de reussite:    95.642857
-Taux d'erreur:       4.357143
+# Valeurs bien predit: 6695
+# Valeurs mal predit:  7000
+# Taux de reussite:    95.642857
+# Taux d'erreur:       4.357143

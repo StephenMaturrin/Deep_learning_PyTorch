@@ -83,33 +83,33 @@ DFsigmoid_v = numpy.vectorize(functions.DFsigmoid)
 N_Hidden_layer = 30
 
 y = [[] for _ in range(3)]
-for j in range(1):
+for j in range(1,2):
+
+    N_Hidden_layer = j
     print(N_Hidden_layer)
     W_Entry_Layer = torch.rand(var.N_FEATURES + 1, N_Hidden_layer).uniform_(-0.1, 0.1)  # R 785*30
 
     W_Hidden_Layer = torch.rand(N_Hidden_layer + 1, var.N_CLASSES).uniform_(-1, 1)  # R 30*10
 
 
-    y[1].append(j)
-    for i in range(20):
+    y[0].append(N_Hidden_layer)
+    for i in range(1):
 
         for i in range(var.N_IMAGES_TRAIN):
             #########################################################################
+
             X = torch.cat((bias,train_data[i, :]), 0)
             X= X [numpy.newaxis]
             label =   train_data_label [i, :]
             Z2 = torch.mm(X,W_Entry_Layer.double()) #R 1*30 = R 1*785 . R 785*30
-            a2 = torch.from_numpy(sigmoid_v(Z2))   # R 1*31
+            a2= torch.sigmoid(Z2)
             a2 = a2.view(1, N_Hidden_layer)
             a2 = torch.cat((bias,a2[0,:]),0).view(1,N_Hidden_layer+1)  #R 1*31 a2[0, :
             Z3= torch.mm(a2,W_Hidden_Layer.double())# R 1*10 = R 1*31 R 31*10
             ################################################################################
             delta2 = torch.add(label.view(1,var.N_CLASSES),Z3*-1)  #R 1*10
-            aux = DFsigmoid_v(Z2)
-            aux = torch.from_numpy(aux)  #R 1*30
+            aux = torch.sigmoid(Z2) * (1-torch.sigmoid(Z2))
             delta1 = torch.mm(delta2,numpy.transpose((W_Hidden_Layer[1:,:].double()))) # R 1* 30 = R 1*10 . R 10*31
-             # R 1 * 31
-            # delta2 = delta2 [numpy.newaxis] # 1D -> D2 array
             delta1= torch.mul(delta1,aux) #delta2[0,1:31]
             delta_W_Entry_Layer = var.EPSILON * torch.mm(numpy.transpose((X)),delta1)
             W_Entry_Layer = torch.add(delta_W_Entry_Layer,W_Entry_Layer.double())
@@ -137,7 +137,7 @@ for j in range(1):
         if (numpy.argmax(Z3) == numpy.argmax(label)):
             accurracy += 1
 
-    y[0].append(accurracy / var.N_IMAGES_TEST * 100)
+    y[1].append(accurracy / var.N_IMAGES_TEST * 100)
     print("Valeurs bien predit: %d " % (accurracy))
     print("Valeurs mal predit:  %d " % (var.N_IMAGES_TEST))
     print("Taux de reussite:    %f" % (accurracy/var.N_IMAGES_TEST*100))
@@ -152,10 +152,9 @@ plt.yscale('linear')
 plt.xscale('linear')
 for line in gridlines:
     line.set_linestyle('-.')
-plt.plot(y[1], y[0], 'bs',y[1], y[0])
+plt.plot(y[0], y[1], 'bs',y[0], y[1])
 plt.ylabel('Accuracy')
-plt.xlabel('Nombre de pas')
-
-blue_patch = mpatches.Patch(color='blue', label='Accurrancy')
+plt.xlabel('Neurones')
+blue_patch = mpatches.Patch(color='blue', label='Accuracy')
 plt.legend(handles=[blue_patch])
 plt.show()
