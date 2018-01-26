@@ -9,6 +9,7 @@ import torch,torch.utils.data
 import pickle  # pour désérialiser les données
 # fonction qui va afficher l'image située à l'index index
 import  variables as var
+import matplotlib.patches as mpatches
 
 
 if __name__ == '__main__':
@@ -53,9 +54,11 @@ if __name__ == '__main__':
 
 
 
-
 dtype = torch.FloatTensor
 N, D_in, H, D_out = var.N_IMAGES_TRAIN,var.N_FEATURES, 300, var.N_CLASSES
+
+
+
 x = Variable(train_data)
 y = Variable(train_data_label, requires_grad=False)
 model = torch.nn.Sequential(
@@ -66,11 +69,14 @@ model = torch.nn.Sequential(
 loss_fn = torch.nn.MSELoss(size_average=False)
 learning_rate = 1e-3
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-for t in range(500):
+pl =[[] for _ in range(3)]
+for t in range(1000):
     y_pred = model(x)
     loss = loss_fn(y_pred, y)
     print(t)
     print( loss.data[0])
+    pl[1].append(loss.data[0])
+    pl[0].append(t)
     optimizer.zero_grad()
     loss.backward()
     optimizer.step()
@@ -95,3 +101,21 @@ print("Valeurs bien predit: %d " % (accurrancy))
 print("Valeurs mal predit:  %d " % (var.N_IMAGES_TEST))
 print("Taux de reussite:    %f" % (accurrancy/var.N_IMAGES_TEST*100))
 print("Taux d'erreur:       %f" %  (100-(accurrancy/var.N_IMAGES_TEST*100)))
+
+fig0 = plt.figure()
+ax0 = fig0.add_subplot(111)
+ax0.grid(True)
+gridlines = ax0.get_xgridlines() + ax0.get_ygridlines()
+plt.yscale('linear')
+plt.xscale('linear')
+
+print(pl)
+for line in gridlines:
+    line.set_linestyle('-.')
+plt.plot(pl[0], pl[1], 'bs', pl[0], pl[1],markersize=2)
+plt.ylabel('Erreur quadratique')
+plt.xlabel('Itaration')
+
+blue_patch = mpatches.Patch(color='blue', label='Erreur')
+plt.legend(handles=[blue_patch])
+plt.show()

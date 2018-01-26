@@ -75,12 +75,7 @@ for j in range(1):
     y = Variable(train_data_label, requires_grad=False)
 
     wi = []
-    # pl[0].append(j)
-    # N_Hidden_Layer = 5
-
-
-
-    Hidden_Layer = [300]
+    Hidden_Layer = [300,100,10]
     w1 = Variable(torch.randn(D_in, Hidden_Layer[0]).uniform_(-0.1, 0.1).type(dtype), requires_grad=True)
     for k in range(len(Hidden_Layer)-1):
         print(Hidden_Layer[k])
@@ -92,7 +87,8 @@ for j in range(1):
 
 
     learning_rate = 1e-5
-    for t in range(1,1000):
+    for t in range(1,100):
+        pl[0].append(t)
         y_pred = x.mm(w1).clamp(min=-0.1, max=0.1)
         for k in range(len(Hidden_Layer) - 1):
             y_pred = y_pred.mm(wi[k])
@@ -108,7 +104,6 @@ for j in range(1):
         w1.grad.data.zero_()
         wn.grad.data.zero_()
 
-
     accurrancy= 0
 
     x = Variable(test_data , requires_grad=False)
@@ -116,8 +111,8 @@ for j in range(1):
     y_pred = x.mm(w1).clamp(min=-0.1, max=0.1)
     # y_pred = sigmoid_v(x.mm(w1))
     # y_pred = torch.from_numpy(y_pred)
-    for i in range(N_Hidden_Layer):
-        y_pred = y_pred.mm(wi[i])
+    for k in range(len(Hidden_Layer) - 1):
+        y_pred = y_pred.mm(wi[k])
     y_pred = y_pred.mm(wn)
 
     for i in range(var.N_IMAGES_TEST):
