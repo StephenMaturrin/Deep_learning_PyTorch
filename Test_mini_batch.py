@@ -14,7 +14,7 @@ import matplotlib.patches as mpatches
 
 if __name__ == '__main__':
     # nombre d'image lues à chaque fois dans la base d'apprentissage (laisser à 1 sauf pour la question optionnelle sur les minibatchs)
-    TRAIN_BATCH_SIZE = 100
+    TRAIN_BATCH_SIZE = 10
 
 
     with gzip.open('mnist.pkl.gz','rb') as f:

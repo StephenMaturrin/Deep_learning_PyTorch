@@ -14,7 +14,7 @@ import matplotlib.patches as mpatches
 
 if __name__ == '__main__':
     # nombre d'image lues à chaque fois dans la base d'apprentissage (laisser à 1 sauf pour la question optionnelle sur les minibatchs)
-    TRAIN_BATCH_SIZE = 1
+    TRAIN_BATCH_SIZE = 10
 
 
     with gzip.open('mnist.pkl.gz','rb') as f:
@@ -52,36 +52,41 @@ if __name__ == '__main__':
     # 10 fois
 
 
-
-
 dtype = torch.FloatTensor
 N, D_in, H, D_out = var.N_IMAGES_TRAIN,var.N_FEATURES, 300, var.N_CLASSES
 
 
 
-x = Variable(train_data)
-y = Variable(train_data_label, requires_grad=False)
+
 model = torch.nn.Sequential(
-    torch.nn.Linear(D_in, H),
+    torch.nn.Linear(D_in, 300),
     torch.nn.ReLU(),
-    torch.nn.Linear(H, D_out),
+    torch.nn.Linear(300, 100),
+    torch.nn.Linear(100, D_out),
 )
 loss_fn = torch.nn.MSELoss(size_average=False)
 learning_rate = 1e-3
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 pl =[[] for _ in range(3)]
-for t in range(1000):
-    y_pred = model(x)
-    loss = loss_fn(y_pred, y)
-    print(t)
-    print( loss.data[0])
+
+
+for t in range(100):
+    for i, (data, target) in enumerate(train_loader):
+        x = Variable(data)
+        y =  Variable(target)
+        y_pred = model(x)
+        loss = loss_fn(y_pred, y)
+        print(t)
+        print( loss.data[0])
+
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
     pl[1].append(loss.data[0])
     pl[0].append(t)
-    optimizer.zero_grad()
-    loss.backward()
-    optimizer.step()
-
 accurrancy= 0
+
+# x = Variable(test_data)
 
 x = Variable(test_data)
 y = Variable(test_data_label, requires_grad=False)
